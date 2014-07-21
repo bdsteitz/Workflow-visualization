@@ -1,0 +1,4 @@
+cd django
+source venv/bin/activate
+python manage.py runserver
+go to localhost:8000
