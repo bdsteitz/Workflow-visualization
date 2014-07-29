@@ -1,0 +1,94 @@
+{% load i18n %}
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Workflow Viz</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <!-- Le styles -->
+    <link href="{{STATIC_URL}}bootstrap/css/bootstrap.css" rel="stylesheet">
+    <link type="text/css" href="{{STATIC_URL}}mbo_style.css" rel="stylesheet" />
+    <link type="text/css" href="{{STATIC_URL}}style.css" rel="stylesheet" />
+
+	{% block extra_head %}
+
+	{% endblock %}
+  </head>
+
+<body>
+    <nav class="navbar navbar-default" role="navigation" style="margin-bottom: 0">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">Whiteboard Viz</a>
+            </div>
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href={% url "logout" %}>Logout</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+{% if messages %}
+    <div class="row">
+        <div class="col-md-12 info-div">
+            {% for message in messages %}
+                <p>{{ message|safe }}</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endif %}
+
+
+<div class="row">
+    <div class="col-md-12">
+	  <div class="pat-select">
+
+
+	  </div>
+	{% block header_content %}
+
+	{% endblock %}
+    </div>
+</div>
+
+<div class="row">
+	<div class="col-md-9">
+		{% block content %}
+
+		{% endblock %}
+	</div>
+	<div class="col-md-3" id="event-sidebar">
+		{% block right_content %}
+
+		{% endblock %}
+	</div>
+
+</div>
+
+<script src="{{STATIC_URL}}jquery.min.js"></script>
+<script src="{{STATIC_URL}}bootstrap/js/bootstrap.js"></script>
+<script src="{{STATIC_URL}}d3.v3.min.js"></script>
+<script src="{{STATIC_URL}}d3-timeline.js"></script>
+<script type="text/javascript" src="{{STATIC_URL}}gantt.js"></script>
+
+{% block extra_js %}
+{% endblock %}
+
+
+</body>
+</html>
+
+

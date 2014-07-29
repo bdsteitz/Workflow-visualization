@@ -36,6 +36,7 @@ INSTALLED_APPS = (
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_extensions',
     'display',
 )
 
@@ -101,5 +102,7 @@ STATICFILES_DIRS = (
     # Don't forget to use absolute paths, not relative paths.
     PROJECT_ROOT,
 )
+
+LOGIN_URL = 'login'
 
 

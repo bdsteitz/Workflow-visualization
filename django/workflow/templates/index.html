@@ -1,3 +1,7 @@
-hello world
+{% extends 'base.html' %}
 
-{{ my_var }}
+
+{% block content %}
+	Welcome!
+	<a href="{% url "display_home" %}">Viz</a>
+{% endblock %}

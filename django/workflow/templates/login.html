@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+
+{% block extra_head %}
+	<link href="{{STATIC_URL}}signin.css" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+
+    <div class="container">
+
+      <form class="form-signin" action="login/?next={{ next }}" method=post>
+	{% csrf_token %} 
+        {{ form.non_field_errors }}
+        <h2 class="form-signin-heading">Please sign in</h2>
+	{{ form.username.errors }}
+        <input id="id_username" name=username type="text" class="form-control" 
+		placeholder="Email address" autofocus 
+		value={% if form.username.value %} {{form.username.value}} {% endif %}>
+
+	{{ form.password.errors }}
+        <input name=password type="password" class="form-control" placeholder="Password">
+        <label class="checkbox">
+          <input type="checkbox" value="remember-me"> Remember me
+        </label>
+        <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+
+	<br>
+
+      </form>
+
+    </div>
+
+{% endblock %}
+

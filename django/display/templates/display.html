@@ -1,12 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-<title>Infusion Gantt</title>
-<link type="text/css" href="http://mbostock.github.io/d3/style.css" rel="stylesheet" />
-<link type="text/css" href="style.css" rel="stylesheet" />
-</head>
-<body bgcolor="#C0C0C0">
-<table border="0" width="100%" height="25px">
+{% extends "base.html" %}
+
+{% load staticfiles %}
+
+{% block content %}
+	<table border="0" width="100%" height="25px">
 	<tr>
 		<td bgcolor="#92160D"><center><font color="#FFF">Exam</font></center></td>
 		<td bgcolor="#CD820D"><center><font color="#FFF">Con#</font></center></td>
@@ -30,20 +27,71 @@
 		<td bgcolor="#1E90FF"><center><font color="#000">H</font></center></td>
 	</tr>
 </table>
-    <div style="z-index:-10;">
-
+    <div style="z-index:-10;" id='viz' name='viz'>
     </div>
+{% endblock %}
 
+{% block right_content %}
+
+{% endblock %}
 
 {% block extra_js %}
-	<script type="text/javascript" src="http://d3js.org/d3.v3.min.js"></script>
-		<script type="text/javascript" src="gantt.js"></script>
-		<script type="text/javascript" src="run.js"></script>
+
+	<script>
+
+	$(document).ready(function() {
+		//Add Task Start Time and Date, End Time and Date, Name, and Status
+		//Sample Below
+		///*var tasks = [
+
+		//Task 1
+		//{"startDate":new Date("Thurs Jun 12 13:54:00 EST 2014"),"endDate":new Date("Thurs Jun 12 13:58:00 EST 2014"),"taskName":"Task 1","status":"Wait"},
+
+		var tasks = {{ tasks | safe }};
+
+		var taskStatus = {
+			"O" : "O-Flag",
+			"A" : "A-Flag",
+			"P" : "P-Flag",
+			"D" : "D-Flag",
+			"R" : "R-Flag",
+			"C" : "C-Flag",
+			"S"	: "S-Flag",
+			"X" : "X-Flag",
+		    "Exam" : "exam",
+		    "Con" : "Consult",
+		    "MM" : "Mammography",
+		    "Wait" : "Waiting",
+		    "Inf" : "Infusion",
+		    "DR" : "DR",
+		    "US" : "US",
+		    "UBX" : "UBX",
+		    "Stereo" : "Stereo",
+		    "Intake" : "Intake",
+		    "I" : "I-Extra"
+		};
+
+		//Add Tasks for Y-Axis of Gantt
+		var taskNames = {{ patients | safe}};
+
+		tasks.sort(function(a, b) {
+		    return a.endDate - b.endDate;
+		});
+		var maxDate = tasks[tasks.length - 1].endDate;
+
+		tasks.sort(function(a, b) {
+		    return a.startDate - b.startDate;
+		});
+		var minDate = tasks[0].startDate;
+
+		var format = "%H:%M";
+
+		var gantt = d3.gantt().taskTypes(taskNames).taskStatus(taskStatus).tickFormat(format);
+		gantt(tasks);
+	});
 
 	</script>
 
 {% endblock %}
 
 
-</body>
-</html>
