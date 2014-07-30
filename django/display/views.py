@@ -99,11 +99,11 @@ def home(request, date=None, dept=None):
 	a.action_code, b.action_code, SUBSTR(a.display_text, 9) AS rooms, 
 	SUBSTR(b.display_text, 9), a.addl_text, a.appt_idno, b.appt_idno, a.appt_date
         FROM display_task AS a, display_task AS b
-        WHERE a.action_code = "I"
-        AND b.action_code = "O"
+        WHERE a.action_code = 'I'
+        AND b.action_code = 'O'
         AND a.mrn = b.mrn
         AND SUBSTR(a.display_text, 9) = SUBSTR(b.display_text, 9)
-        AND datetime(a.action_dt) < datetime(b.action_dt)
+        AND a.action_dt < b.action_dt
         AND a.addl_text = "%s"
 	AND a.appt_date = "%s"
 	AND b.appt_date = "%s"
