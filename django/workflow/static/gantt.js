@@ -28,7 +28,6 @@ d3.gantt = function(tasks) {
 	return "translate(" + x(d.startDate) + "," + y(d.taskName) + ")";
     };
 
-   alert(timeDomainStart);
     var x = d3.time.scale().domain([ timeDomainStart, timeDomainEnd ]).range([ 0, width ]).clamp(true);
 
     var y = d3.scale.ordinal().domain(taskTypes).rangeRoundBands([ 0, height - margin.top - margin.bottom ], .1);

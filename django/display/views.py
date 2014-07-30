@@ -1,9 +1,12 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.db import connection
+from display.forms import SwitchGraphForm, SwitchDeptForm
+from display.models import Task
 
 import json
 import time
+import datetime
 
 # Create your views here.
 status_dict = {
@@ -72,7 +75,25 @@ status_dict = {
 	}
 
 @login_required
-def home(request):
+def home(request, date=None, dept=None):
+	form2 = None
+	if not date:
+		task = Task.objects.values('appt_date', 'addl_text').order_by('-appt_date')[0]
+		date = task['appt_date']
+		dept = task['addl_text']	
+		form2 = SwitchDeptForm(date=date, dept=dept)
+		#print date, dept
+
+	if not dept:
+		task = Task.objects.values('addl_text').order_by('-appt_date')[0]
+		dept = task['addl_text']	
+
+	if date and dept:
+		form2 = SwitchDeptForm(date=date, dept=dept)
+		
+	form = SwitchGraphForm(date=date)
+	
+
 	q = '''SELECT a.action_dt AS enter_time, b.action_dt AS exit_time, a.mrn AS id, b.mrn, 
 	a.action_code, b.action_code, SUBSTR(a.display_text, 9) AS rooms, 
 	SUBSTR(b.display_text, 9), a.addl_text, a.appt_idno, b.appt_idno, a.appt_date
@@ -82,9 +103,12 @@ def home(request):
         AND a.mrn = b.mrn
         AND SUBSTR(a.display_text, 9) = SUBSTR(b.display_text, 9)
         AND datetime(a.action_dt) < datetime(b.action_dt)
-        AND a.addl_text = "Williamson Walk-In"
+        AND a.addl_text = "%s"
+	AND a.appt_date = "%s"
+	AND b.appt_date = "%s"
         ORDER BY a.mrn, a.action_dt, a.display_text, a.action_code ASC
-	'''
+	''' % (dept, date, date)
+        #AND a.addl_text = "Williamson Walk-In"
 
 	cur = connection.cursor()
 	cur.execute(q)
@@ -95,18 +119,21 @@ def home(request):
 	patients = []
 	mrn_to_i = {}
 	for line in data:
-		# {"startDate":new Date("Thurs Jun 12 13:54:00 EST 2014"),"endDate":new Date("Thurs Jun 12 13:58:00 EST 2014"),"taskName":"Task 1","status":"Wait"},
+		# {"startDate":new Date("Thurs Jun 12 13:54:00 EST 2014"),"endDate":new Date("Thurs Jun 12 13:58:00 EST 2014"),"taskName":"Patient 0","status":"Inf"}
 		# print line
 
 		mrn = line[2]
 		if mrn not in mrn_to_i:
 			mrn_to_i[mrn] = len(mrn_to_i.keys())
 		i = mrn_to_i[mrn]
-			
-		t = {'startDate': int(time.mktime(line[0].timetuple())*1000), #line[0].strftime("%Y-%m-%d %H:%M:%S"), 
-			'endDate': int(time.mktime(line[1].timetuple())*1000), #line[1].strftime("%Y-%m-%d %H:%M:%S"), 
+		
+		delta = datetime.timedelta(hours=5)	
+		start = line[0] + delta
+		end = line[1] + delta
+		t = {'startDate': int(time.mktime(start.timetuple()) * 1000), #line[0].strftime("%Y-%m-%d %H:%M:%S"), 
+			'endDate': int(time.mktime(end.timetuple()) * 1000), #line[1].strftime("%Y-%m-%d %H:%M:%S"), 
 			'taskName': 'Patient %d' % i, 
-			'status': 'Inf' #status_dict[line[7]] if line[7] in status_dict else line[7] 
+			'status': status_dict[line[7]] if line[7] in status_dict else line[7] 
 		}
 		tasks.append(t)
 
@@ -114,7 +141,9 @@ def home(request):
 		patients.append('Patient %d' % mrn_to_i[i])
 
 	c = {'tasks': json.dumps(tasks),
-		'patients': json.dumps(patients)}
+		'patients': json.dumps(patients),
+		'form': form,
+		'form2': form2}
 
 	return render(request, 'display.html', c)
 

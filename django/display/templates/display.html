@@ -1,6 +1,5 @@
 {% extends "base.html" %}
-
-{% load staticfiles %}
+{% load crispy_forms_tags %}
 
 {% block content %}
 	<table border="0" width="100%" height="25px">
@@ -26,8 +25,13 @@
 		<td bgcolor="#FFFFFF"><center><font color="#000">X</font></center></td>
 		<td bgcolor="#1E90FF"><center><font color="#000">H</font></center></td>
 	</tr>
+	<tr>
+		<td> </td>
+		<td colspan=10>{% crispy form %} <br> {% crispy form2 %}</td>
+	</tr>
 </table>
-    <div style="z-index:-10;" id='viz' name='viz'>
+
+    <div style="z-index:-10;">
     </div>
 {% endblock %}
 
@@ -37,7 +41,7 @@
 
 {% block extra_js %}
 
-	<script>
+	<script language="javascript">
 
 	$(document).ready(function() {
 		//Add Task Start Time and Date, End Time and Date, Name, and Status
@@ -84,10 +88,26 @@
 		});
 		var minDate = tasks[0].startDate;
 
-		var format = "%H:%M";
+		var format = "%Y-%m-%d %H:%M";
 
-		var gantt = d3.gantt().taskTypes(taskNames).taskStatus(taskStatus).tickFormat(format);
+		var gantt = d3.gantt(tasks).taskTypes(taskNames).taskStatus(taskStatus).tickFormat(format);
 		gantt(tasks);
+	});
+
+      $(document).ready(function() {
+           // initializing switch-graph-form (if applicable)
+            if ($('#switch-graph-form').length) {
+                $('#id_switch_graph').change(function() {
+                    window.location = $('#id_switch_graph').val();
+                });
+            }
+
+            if ($('#switch-graph-form2').length) {
+                $('#id_dept').change(function() {
+                    window.location = $('#id_dept').val();
+                });
+            }
+
 	});
 
 	</script>

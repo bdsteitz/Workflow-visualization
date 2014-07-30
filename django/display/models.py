@@ -8,7 +8,7 @@ appt date|column id|MRN|time stamp of action|action code|display text|addl text|
 2014-07-27| 68|004301230|2014-07-27 13:24:00|I|Put in: 6|Williamson Walk-In|76460152|chipbl1|ANTREASA CHIPA
 '''
 class Task(models.Model):
-	appt_date = models.DateField()
+	appt_date = models.DateField(db_index=True)
 	column_id = models.IntegerField()
 	mrn = models.IntegerField()
 	action_dt = models.DateTimeField()

@@ -1,5 +1,6 @@
 import os
 import datetime
+import string
 
 from display.models import Task
 from django.utils import timezone
@@ -50,10 +51,14 @@ class Loader:
 			t.action_dt = timezone.make_aware(action_dt, timezone.get_default_timezone())
 			t.action_code = s[4]
 			t.display_text = s[5]
-			t.addl_text = s[6]
+			t.addl_text = string.strip(s[6])
+			for c in string.punctuation:
+				t.addl_text = t.addl_text.replace(c, '')
+
 			t.appt_idno = int(s[7]) if len(s[7]) > 0 else -1
 			t.racfidc = s[8]
 			t.full_name = s[9]
+
 			to_insert.append(t)
 			i += 1
 	

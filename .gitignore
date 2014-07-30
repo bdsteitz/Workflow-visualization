@@ -2,3 +2,5 @@ venv
 data
 *.sqlite3
 *.pyc
+*.swp
+*.swn
