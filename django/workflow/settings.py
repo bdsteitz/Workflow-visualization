@@ -37,6 +37,7 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django_extensions',
+    'debug_toolbar',
     'crispy_forms',
     'display',
 )
@@ -107,4 +108,12 @@ STATICFILES_DIRS = (
 LOGIN_URL = 'login'
 
 CRISPY_TEMPLATE_PACK = 'bootstrap'
+
+DEBUG_TOOLBAR_PATCH_SETTINGS = False
+
+
+try:
+    from local_settings import *
+except ImportError:
+    pass
 

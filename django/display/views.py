@@ -1,6 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from django.db import connection
+from django.db.models import Count
 from display.forms import SwitchGraphForm, SwitchDeptForm
 from display.models import Task
 
