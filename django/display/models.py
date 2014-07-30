@@ -14,7 +14,7 @@ class Task(models.Model):
 	action_dt = models.DateTimeField()
 	action_code = models.CharField(max_length=16)
 	display_text = models.CharField(max_length=128)
-	addl_text = models.CharField(max_length=128)
+	addl_text = models.CharField(max_length=128, db_index=True)
 	appt_idno = models.IntegerField()
 	racfid = models.CharField(max_length=32)
 	full_name = models.CharField(max_length=128)
