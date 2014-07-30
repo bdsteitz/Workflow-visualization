@@ -104,9 +104,9 @@ def home(request, date=None, dept=None):
         AND a.mrn = b.mrn
         AND SUBSTR(a.display_text, 9) = SUBSTR(b.display_text, 9)
         AND a.action_dt < b.action_dt
-        AND a.addl_text = "%s"
-	AND a.appt_date = "%s"
-	AND b.appt_date = "%s"
+        AND a.addl_text = '%s'
+	AND a.appt_date = '%s'
+	AND b.appt_date = '%s'
 	''' % (dept, date, date)
         #AND a.addl_text = "Williamson Walk-In"
 
