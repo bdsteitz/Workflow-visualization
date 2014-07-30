@@ -107,9 +107,14 @@ def home(request, date=None, dept=None):
         AND a.addl_text = "%s"
 	AND a.appt_date = "%s"
 	AND b.appt_date = "%s"
-        ORDER BY a.mrn, a.action_dt, a.display_text, a.action_code ASC
 	''' % (dept, date, date)
         #AND a.addl_text = "Williamson Walk-In"
+
+	if 'sorted' in request.GET:
+        	q += 'ORDER BY enter_time, a.mrn, a.action_dt, a.display_text, a.action_code ASC'
+	else:
+        	q += 'ORDER BY a.mrn, a.action_dt, a.display_text, a.action_code ASC'
+	
 
 	cur = connection.cursor()
 	cur.execute(q)
@@ -131,8 +136,17 @@ def home(request, date=None, dept=None):
 		delta = datetime.timedelta(hours=5)	
 		start = line[0] + delta
 		end = line[1] + delta
-		t = {'startDate': int(time.mktime(start.timetuple()) * 1000), #line[0].strftime("%Y-%m-%d %H:%M:%S"), 
-			'endDate': int(time.mktime(end.timetuple()) * 1000), #line[1].strftime("%Y-%m-%d %H:%M:%S"), 
+		start_val = int(time.mktime(start.timetuple()) * 1000)
+		end_val = int(time.mktime(end.timetuple()) * 1000)
+
+		if 'left_align' in request.GET:
+			base_time = int(time.mktime(datetime.datetime.now().timetuple()))
+			end_val = base_time + (end_val - start_val)
+			start_val = base_time
+			#print start_val, end_val
+
+		t = {'startDate': start_val,
+			'endDate': end_val,
 			'taskName': 'Patient %d' % i, 
 			'status': status_dict[line[7]] if line[7] in status_dict else line[7] 
 		}
