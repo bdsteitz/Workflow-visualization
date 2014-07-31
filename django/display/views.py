@@ -75,26 +75,7 @@ status_dict = {
 	'MRI':'Other'
 	}
 
-@login_required
-def home(request, date=None, dept=None):
-	form2 = None
-	if not date:
-		task = Task.objects.values('appt_date', 'addl_text').order_by('-appt_date')[0]
-		date = task['appt_date']
-		dept = task['addl_text']	
-		form2 = SwitchDeptForm(date=date, dept=dept)
-		#print date, dept
-
-	if not dept:
-		task = Task.objects.values('addl_text').order_by('-appt_date')[0]
-		dept = task['addl_text']	
-
-	if date and dept:
-		form2 = SwitchDeptForm(date=date, dept=dept)
-		
-	form = SwitchGraphForm(date=date)
-	
-
+def getData(request, dept, date):
 	q = '''SELECT a.action_dt AS enter_time, b.action_dt AS exit_time, a.mrn AS id, b.mrn, 
 	a.action_code, b.action_code, SUBSTR(a.display_text, 9) AS rooms, 
 	SUBSTR(b.display_text, 9), a.addl_text, a.appt_idno, b.appt_idno, a.appt_date
@@ -119,11 +100,15 @@ def home(request, date=None, dept=None):
 	cur = connection.cursor()
 	cur.execute(q)
 	data = cur.fetchall()
+	return data
 
+
+def createTasks(request, data):
 	tasks = []
 	i = 0
 	patients = []
 	mrn_to_i = {}
+	rooms = set()
 	for line in data:
 		# {"startDate":new Date("Thurs Jun 12 13:54:00 EST 2014"),"endDate":new Date("Thurs Jun 12 13:58:00 EST 2014"),"taskName":"Patient 0","status":"Inf"}
 		# print line
@@ -138,6 +123,9 @@ def home(request, date=None, dept=None):
 		end = line[1] + delta
 		start_val = int(time.mktime(start.timetuple()) * 1000)
 		end_val = int(time.mktime(end.timetuple()) * 1000)
+		room = line[7]
+		if len(room) == 0: continue
+		rooms.add(room)
 
 		if 'left_align' in request.GET:
 			base_time = int(time.mktime(datetime.datetime.now().timetuple()))
@@ -145,27 +133,63 @@ def home(request, date=None, dept=None):
 			start_val = base_time
 			#print start_val, end_val
 
-		t = {'startDate': start_val,
-			'endDate': end_val,
-			'taskName': 'Patient %d' % i, 
-			'status': status_dict[line[7]] if line[7] in status_dict else line[7] 
-		}
+		t = None
+		if 'by_room' in request.GET:
+			t = {'startDate': start_val,
+				'endDate': end_val,
+				'taskName': room,
+				'status': 'room'
+			}
+		else:
+			t = {'startDate': start_val,
+				'endDate': end_val,
+				'taskName': 'Patient %d' % i, 
+				'status': status_dict[line[7]] if line[7] in status_dict else line[7] 
+			}
 		tasks.append(t)
 
 	for i in sorted(mrn_to_i, key=lambda x: mrn_to_i[x]):
 		patients.append('Patient %d' % mrn_to_i[i])
 
+	if 'by_room' in request.GET:
+		task_names = sorted(list(rooms))
+	else:	
+		task_names = patients
+	
+	return (tasks, task_names)
+
+@login_required
+def home(request, date=None, dept=None):
+	form2 = None
+	if not date:
+		task = Task.objects.values('appt_date', 'addl_text').order_by('-appt_date')[0]
+		date = task['appt_date']
+		dept = task['addl_text']	
+		form2 = SwitchDeptForm(date=date, dept=dept)
+		#print date, dept
+
+	if not dept:
+		task = Task.objects.values('addl_text').order_by('-appt_date')[0]
+		dept = task['addl_text']	
+
+	if date and dept:
+		form2 = SwitchDeptForm(date=date, dept=dept)
+		
+	form = SwitchGraphForm(date=date)
+	data = getData(request, dept, date)
+	tasks, task_names = createTasks(request, data)
+	print task_names
+
 	c = {'tasks': json.dumps(tasks),
-		'patients': json.dumps(patients),
+		'task_names': json.dumps(task_names),
 		'form': form,
 		'form2': form2,
-		'scale': (len(patients) - 100) / 25 if len(patients) > 100 else 0
+		'scale': (len(task_names) - 100) / 25 if len(task_names) > 100 else 0
 	}
-
 	return render(request, 'display.html', c)
 
 
-'''SELECT a.appt_date, a.mrn, a.addl_text,  a.display_text, a.action_dt AS enter_time, b.action_dt - a.action_dt as timeDifference, b.action_dt AS exit_time, a.appt_idno
+'''SELECT a.appt_date, a.mrn, a.addl_text,  SUBSTR(a.display_text, 9), a.action_dt AS enter_time, b.action_dt - a.action_dt as timeDifference, b.action_dt AS exit_time, a.appt_idno
 FROM display_task a, display_task b
 WHERE a.appt_idno = b.appt_idno
 AND a.mrn = b.mrn
@@ -173,7 +197,7 @@ AND a.action_dt < b.action_dt
 AND a.addl_text = b.addl_text
 AND SUBSTR(a.display_text, 9) = SUBSTR(b.display_text, 9)
 AND a.appt_date = b.appt_date
-AND a.appt_date = '2014-06-12'A
+AND a.appt_date = '2014-06-12'
 AND a.addl_text = '100 Oaks Breast Center Infusion'
 '''
 

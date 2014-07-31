@@ -27,7 +27,7 @@
 	</tr>
 	<tr>
 		<td> </td>
-		<td colspan=10>{% crispy form %} <br> {% crispy form2 %} <br><a href=?sorted=True>Sort By Start</a> | <a href=?sorted=True&left_align=True>Left Align</a> | <a href='?'>Unsorted</a></td>
+		<td colspan=10>{% crispy form %} <br> {% crispy form2 %} <br><a href=?sorted=True>Sort By Start</a> | <a href=?sorted=True&left_align=True>Left Align</a> | <a href='?by_room=True'>By Room</a> | <a href='?'>Unsorted</a></td>
 	</tr>
 </table>
 
@@ -76,7 +76,7 @@
 		};
 
 		//Add Tasks for Y-Axis of Gantt
-		var taskNames = {{ patients | safe}};
+		var taskNames = {{ task_names | safe}};
 
 		tasks.sort(function(a, b) {
 		    return a.endDate - b.endDate;
