@@ -27,7 +27,23 @@
 	</tr>
 	<tr>
 		<td> </td>
-		<td colspan=10>{% crispy form %} <br> {% crispy form2 %} <br><a href=?sorted=True>Sort By Start</a> | <a href=?sorted=True&left_align=True>Left Align</a> | <a href='?by_room=True'>By Room</a> | <a href='?'>Unsorted</a></td>
+		<td colspan=5>{% crispy form %} <br> {% crispy form2 %} <br><a href=?sorted=True>Sort By Start</a> | <a href=?sorted=True&left_align=True>Left Align</a> | <a href='?by_room=True'>By Room</a> | <a href='?'>Unsorted</a></td>
+			<td colspan=5>
+			<div id=pie name=pie>
+				  <svg style='height:300px;width:400px'> </svg>
+
+			</div>
+		</td>
+	
+	</tr>
+	<tr>
+		<td> </td>
+		<td colspan=10><br>
+
+			{% for s in sorted_task_names %}
+				{{s}} = {{stats|lookup:s | floatformat:"-2"}} min.
+			{% endfor %}
+		</td>
 	</tr>
 </table>
 
@@ -167,7 +183,7 @@
         
         var initAxis = function() {
             x = d3.time.scale().domain([ timeDomainStart, timeDomainEnd ]).range([ 0, width ]).clamp(true);
-            y = d3.scale.ordinal().domain(taskTypes).rangeRoundBands([ 0, height - margin.top - margin.bottom + 250*{{scale}}], .1); //h
+            y = d3.scale.ordinal().domain(taskTypes).rangeRoundBands([ 0, height - margin.top - margin.bottom + 0], .1); //h
             xAxis = d3.svg.axis().scale(x).orient("bottom").tickFormat(d3.time.format(tickFormat)).tickSubdivide(true)
             .tickSize(8).tickPadding(8);
             
@@ -183,7 +199,7 @@
             .append("svg")
             .attr("class", "chart")
             .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom + 250*{{scale}}) //h
+            .attr("height", height + margin.top + margin.bottom + 0) //h
             .append("g")
             .attr("class", "gantt-chart")
             .attr("width", width + margin.left + margin.right)
@@ -329,6 +345,30 @@
     };
 
   </script>
+
+
+  <script language=javascript>
+
+	 $(document).ready(function() {
+		var data = {{ pie_data|safe }};
+	
+		nv.addGraph(function() {
+		  var chart = nv.models.pieChart()
+		      .x(function(d) { return d.name; })
+		      .y(function(d) { return d.count; })
+		      .showLabels(true);
+
+		    d3.select("#pie svg")
+			.datum(data)
+			.transition().duration(350)
+			.call(chart);
+
+		  return chart;
+		});
+	});
+
+  </script>
+
 
 {% endblock %}
 

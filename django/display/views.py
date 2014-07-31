@@ -4,10 +4,13 @@ from django.db import connection
 from django.db.models import Count
 from display.forms import SwitchGraphForm, SwitchDeptForm
 from display.models import Task
+from django.template.defaultfilters import register
+
 
 import json
 import time
 import datetime
+from collections import defaultdict
 
 # Create your views here.
 status_dict = {
@@ -144,7 +147,7 @@ def createTasks(request, data):
 			t = {'startDate': start_val,
 				'endDate': end_val,
 				'taskName': 'Patient %d' % i, 
-				'status': status_dict[line[7]] if line[7] in status_dict else line[7] 
+				'status': status_dict[room] if room in status_dict else room 
 			}
 		tasks.append(t)
 
@@ -157,6 +160,39 @@ def createTasks(request, data):
 		task_names = patients
 	
 	return (tasks, task_names)
+
+def getStats(request, tasks):
+	room_count = {}
+	for t in tasks:
+		start = t['startDate']
+		end = t['endDate']
+		if 'by_room' in request.GET:
+			room = t['taskName']
+		else:
+			room = t['status']
+		room = parseRoom(room)
+
+		if room not in room_count:
+			room_count[room] = 0
+		room_count[room] += (end - start) / 1000
+
+	for room in room_count:
+		room_count[room] = float(room_count[room]) / 60
+	return room_count
+
+def getPie(stats):
+	l = []
+	for s in stats:
+		l.append({'name': s, 'count': stats[s]})
+	return l
+
+def parseRoom(room):
+	room = room.split('-')[0]
+	room = room.split(' ')[0]
+	for i in range(0, len(room)):
+		if room[i].isdigit():
+			return room[:i]
+	return room
 
 @login_required
 def home(request, date=None, dept=None):
@@ -178,13 +214,16 @@ def home(request, date=None, dept=None):
 	form = SwitchGraphForm(date=date)
 	data = getData(request, dept, date)
 	tasks, task_names = createTasks(request, data)
-	print task_names
+	#print task_names
+	stats = getStats(request, tasks)
 
 	c = {'tasks': json.dumps(tasks),
 		'task_names': json.dumps(task_names),
 		'form': form,
 		'form2': form2,
-		'scale': (len(task_names) - 100) / 25 if len(task_names) > 100 else 0
+		'scale': (len(task_names) - 100) / 25 if len(task_names) > 100 else 0,
+		'stats': stats,
+		'pie_data': json.dumps(getPie(stats)),
 	}
 	return render(request, 'display.html', c)
 
@@ -205,3 +244,9 @@ def test(request):
 	print 'hi'
 	c = {}
 	return render(request, 'blah.html', c)
+
+@register.filter(name='lookup')
+def lookup(dict, index):
+        if index in dict:
+                return dict[index]
+        return ''
