@@ -57,7 +57,7 @@ d3.gantt = function(tasks) {
 
     var initAxis = function() {
 	x = d3.time.scale().domain([ timeDomainStart, timeDomainEnd ]).range([ 0, width ]).clamp(true);
-	y = d3.scale.ordinal().domain(taskTypes).rangeRoundBands([ 0, height - margin.top - margin.bottom ], .1);
+	y = d3.scale.ordinal().domain(taskTypes).rangeRoundBands([ 0, height - margin.top - margin.bottom + 200*{{scale}}], .1); //h
 	xAxis = d3.svg.axis().scale(x).orient("bottom").tickFormat(d3.time.format(tickFormat)).tickSubdivide(true)
 		.tickSize(8).tickPadding(8);
 
@@ -73,11 +73,11 @@ d3.gantt = function(tasks) {
 	.append("svg")
 	.attr("class", "chart")
 	.attr("width", width + margin.left + margin.right)
-	.attr("height", height + margin.top + margin.bottom)
+	.attr("height", height + margin.top + margin.bottom + 0) //h
 	.append("g")
         .attr("class", "gantt-chart")
 	.attr("width", width + margin.left + margin.right)
-	.attr("height", height + margin.top + margin.bottom)
+	.attr("height", height + margin.top + margin.bottom )
 	.attr("transform", "translate(" + margin.left + ", " + margin.top + ")");
 	
       svg.selectAll(".chart")
@@ -99,7 +99,7 @@ d3.gantt = function(tasks) {
 	 
 	 svg.append("g")
 	 .attr("class", "x axis")
-	 .attr("transform", "translate(0, " + (height - margin.top - margin.bottom) + ")")
+	 .attr("transform", "translate(0, " + (-12) + ")" ) //(height - margin.top - margin.bottom) /
 	 .transition()
 	 .call(xAxis);
 	 

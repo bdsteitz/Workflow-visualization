@@ -48,9 +48,9 @@ class SwitchDeptForm(forms.Form):
         dept = kwargs.pop('dept')
         super(SwitchDeptForm, self).__init__(*args, **kwargs)
 
-	self.depts = Task.objects.values('addl_text').annotate(c=Count('id')).filter(appt_date=date, c__gt=20)
+	self.depts = Task.objects.values('addl_text').annotate(c=Count('id')).filter(appt_date=date, c__gt=20).order_by('addl_text')
 	#self.depts = Task.objects.values_list('addl_text', flat=True).distinct().order_by('addl_text')
-	print self.depts
+	#print self.depts
         choices = [(None, '---')] + [(reverse('display_date_dept', args=[str(date), str(d['addl_text'])]), d['addl_text']) for d in self.depts if len(d['addl_text']) > 0] 
         self.fields['dept'].choices = choices
 	if dept:

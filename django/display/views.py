@@ -158,9 +158,24 @@ def home(request, date=None, dept=None):
 	c = {'tasks': json.dumps(tasks),
 		'patients': json.dumps(patients),
 		'form': form,
-		'form2': form2}
+		'form2': form2,
+		'scale': (len(patients) - 100) / 25 if len(patients) > 100 else 0
+	}
 
 	return render(request, 'display.html', c)
+
+
+'''SELECT a.appt_date, a.mrn, a.addl_text,  a.display_text, a.action_dt AS enter_time, b.action_dt - a.action_dt as timeDifference, b.action_dt AS exit_time, a.appt_idno
+FROM display_task a, display_task b
+WHERE a.appt_idno = b.appt_idno
+AND a.mrn = b.mrn
+AND a.action_dt < b.action_dt
+AND a.addl_text = b.addl_text
+AND SUBSTR(a.display_text, 9) = SUBSTR(b.display_text, 9)
+AND a.appt_date = b.appt_date
+AND a.appt_date = '2014-06-12'A
+AND a.addl_text = '100 Oaks Breast Center Infusion'
+'''
 
 def test(request):
 	print 'hi'
