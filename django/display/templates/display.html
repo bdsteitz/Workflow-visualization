@@ -27,6 +27,7 @@
 	</tr>
 	<tr>
 		<td> </td>
+		<td> </td>
 		<td colspan=5>{% crispy form %} <br> {% crispy form2 %} <br><a href=?sorted=True>Sort By Start</a> | <a href=?sorted=True&left_align=True>Left Align</a> | <a href='?by_room=True'>By Room</a> | <a href='?'>Unsorted</a></td>
 			<td colspan=5>
 			<div id=pie name=pie>
@@ -47,7 +48,7 @@
 	</tr>
 </table>
 
-    <div style="z-index:-10;">
+    <div style="z-index:-10;" id='timeline'>
     </div>
 {% endblock %}
 
@@ -199,7 +200,7 @@
             .append("svg")
             .attr("class", "chart")
             .attr("width", width + margin.left + margin.right)
-            .attr("height", height + margin.top + margin.bottom + 0) //h
+            .attr("height", height + margin.top + margin.bottom + 600) //h
             .append("g")
             .attr("class", "gantt-chart")
             .attr("width", width + margin.left + margin.right)
@@ -348,7 +349,6 @@
 
 
   <script language=javascript>
-
 	 $(document).ready(function() {
 		var data = {{ pie_data|safe }};
 	
@@ -356,6 +356,7 @@
 		  var chart = nv.models.pieChart()
 		      .x(function(d) { return d.name; })
 		      .y(function(d) { return d.count; })
+		      //.color(function(d) { return d.color; })
 		      .showLabels(true);
 
 		    d3.select("#pie svg")
@@ -368,7 +369,6 @@
 	});
 
   </script>
-
 
 {% endblock %}
 
