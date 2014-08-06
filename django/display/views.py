@@ -13,7 +13,67 @@ import datetime
 from collections import defaultdict
 
 # Create your views here.
+colors = ['#921600',
+	'#CD820D',
+	'#3A8408',
+	'#000000',
+	'#3E046F',
+	'#666231',
+	'#550000',
+	'#003D00',
+	'#04376F',
+	'#008B8B',
+	'#3D4557',
+	'#63FA20',
+	'#E820FA',
+	'#0000FF',
+	'#FAF720',
+	'#FF3333',
+	'#20FAD4',
+	'#9932CC',
+	'#FFFFFF',
+	'#1E90FF']
+
+abbr = {
+        "O1" : "O-Flag",
+	"A1" : "A-Flag",
+	"P1" : "P-Flag",
+	"D1" : "D-Flag",
+	"R1" : "R-Flag",
+	"C1" : "C-Flag",
+	"S1" : "S-Flag",
+	"X1" : "X-Flag",
+	    "Exam" : "exam",
+	    "Con" : "Consult",
+	    "MM" : "Mammography",
+	    "Wait" : "Waiting",
+	    "Inf" : "Infusion",
+	    "DR" : "DR",
+	    "US" : "US",
+	    "UBX" : "UBX",
+	    "Stereo" : "Stereo",
+	    "Intake" : "Intake",
+	    "I1" : "I-Extra"
+	}	
+
 status_dict = {
+        "O1" : "O-Flag",
+	"A1" : "A-Flag",
+	"E1" : "E-Flag",
+	"P1" : "P-Flag",
+	"D1" : "D-Flag",
+	"R1" : "R-Flag",
+	"C1" : "C-Flag",
+	"S1" : "S-Flag",
+	"X1" : "X-Flag",
+	    "I1" : "I-Extra",
+	    "MM" : "Mammography",
+	    "Inf" : "Infusion",
+	    "DR" : "DR",
+	    "US" : "US",
+	    "UBX" : "UBX",
+	    "Stereo" : "Stereo",
+	    "Intake" : "Intake",
 	'BR-WR':'Wait', 
 	'LabWR':'Wait', 
 	'TVWR':'Wait', 
@@ -21,6 +81,9 @@ status_dict = {
 	'Lunch':'Wait', 
 	'IR':'Intake', 
 	'DR':'DR',
+	'A': 'Exam',
+	'B': 'Exam',
+	'C': 'Exam',
 	'A515':'Exam',
 	'A516':'Exam',
 	'A517':'Exam',
@@ -39,6 +102,7 @@ status_dict = {
 	'C528':'Exam',
 	'C529':'Exam',
 	'C530':'Exam',
+	'Con': 'Consult',
 	'Con1':'Con',
 	'Con2':'Con',
 	'Con3':'Con',
@@ -65,6 +129,7 @@ status_dict = {
 	'I-14':'Inf',
 	'I-15':'Inf',
 	'I-16':'Inf',
+	'I': 'Infusion',
 	'US-45':'US',
 	'US45':'US',
 	'US43':'US',
@@ -126,9 +191,9 @@ def createTasks(request, data):
 		end = line[1] + delta
 		start_val = int(time.mktime(start.timetuple()) * 1000)
 		end_val = int(time.mktime(end.timetuple()) * 1000)
-		room = line[7]
+		room = parseRoom(line[7])
 		if len(room) == 0: continue
-		rooms.add(room)
+		rooms.add(status_dict[room] if room in status_dict else room)
 
 		if 'left_align' in request.GET:
 			base_time = int(time.mktime(datetime.datetime.now().timetuple()))
@@ -140,8 +205,9 @@ def createTasks(request, data):
 		if 'by_room' in request.GET:
 			t = {'startDate': start_val,
 				'endDate': end_val,
-				'taskName': room,
-				'status': 'room'
+				'taskName': status_dict[room] if room in status_dict else room,
+				'status': 'room',
+				'room': status_dict[room] if room in status_dict else room 
 			}
 		else:
 			t = {'startDate': start_val,
@@ -167,7 +233,7 @@ def getStats(request, tasks):
 		start = t['startDate']
 		end = t['endDate']
 		if 'by_room' in request.GET:
-			room = t['taskName']
+			room = t['room']
 		else:
 			room = t['status']
 		room = parseRoom(room)
@@ -180,19 +246,38 @@ def getStats(request, tasks):
 		room_count[room] = float(room_count[room]) / 60
 	return room_count
 
-def getPie(stats):
+def getPie(stats, color_map):
 	l = []
 	for s in stats:
-		l.append({'name': s, 'count': stats[s]})
+		l.append({'name': s, 'count': stats[s], 'color': color_map[s] if s in color_map else 'black'})
 	return l
 
 def parseRoom(room):
+	init_room = room
 	room = room.split('-')[0]
 	room = room.split(' ')[0]
 	for i in range(0, len(room)):
 		if room[i].isdigit():
 			return room[:i]
+	if len(init_room) == 1:
+		room += '1'
+
+	if room in status_dict:
+		return status_dict[room]
+
 	return room
+
+def getTaskToColor(stats):
+	c = {}
+	keys = stats.keys()
+	for i in range(0, len(stats)):
+		room = keys[i]
+		if room in status_dict:
+			c[status_dict[room]] = colors[i % len(colors)]
+		else:
+			c[room] = colors[i % len(colors)]
+		
+	return c	
 
 @login_required
 def home(request, date=None, dept=None):
@@ -214,8 +299,8 @@ def home(request, date=None, dept=None):
 	form = SwitchGraphForm(date=date)
 	data = getData(request, dept, date)
 	tasks, task_names = createTasks(request, data)
-	#print task_names
 	stats = getStats(request, tasks)
+	color_map = getTaskToColor(stats)
 
 	c = {'tasks': json.dumps(tasks),
 		'task_names': json.dumps(task_names),
@@ -223,22 +308,11 @@ def home(request, date=None, dept=None):
 		'form2': form2,
 		'scale': (len(task_names) - 100) / 25 if len(task_names) > 100 else 0,
 		'stats': stats,
-		'pie_data': json.dumps(getPie(stats)),
+		'pie_data': json.dumps(getPie(stats, color_map)),
+		'color_map': color_map,
+		'colors': json.dumps(colors),
 	}
 	return render(request, 'display.html', c)
-
-
-'''SELECT a.appt_date, a.mrn, a.addl_text,  SUBSTR(a.display_text, 9), a.action_dt AS enter_time, b.action_dt - a.action_dt as timeDifference, b.action_dt AS exit_time, a.appt_idno
-FROM display_task a, display_task b
-WHERE a.appt_idno = b.appt_idno
-AND a.mrn = b.mrn
-AND a.action_dt < b.action_dt
-AND a.addl_text = b.addl_text
-AND SUBSTR(a.display_text, 9) = SUBSTR(b.display_text, 9)
-AND a.appt_date = b.appt_date
-AND a.appt_date = '2014-06-12'
-AND a.addl_text = '100 Oaks Breast Center Infusion'
-'''
 
 def test(request):
 	print 'hi'
