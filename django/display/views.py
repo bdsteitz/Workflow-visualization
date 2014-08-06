@@ -159,7 +159,7 @@ def getData(request, dept, date):
 	''' % (dept, date, date)
         #AND a.addl_text = "Williamson Walk-In"
 
-	if 'sorted' in request.GET:
+	if 'sorted' in request.GET or 'left_align' in request.GET:
         	q += 'ORDER BY enter_time, a.mrn, a.action_dt, a.display_text, a.action_code ASC'
 	else:
         	q += 'ORDER BY a.mrn, a.action_dt, a.display_text, a.action_code ASC'
@@ -177,6 +177,8 @@ def createTasks(request, data):
 	patients = []
 	mrn_to_i = {}
 	rooms = set()
+	base_time = int(time.mktime(datetime.datetime.now().timetuple()))
+	patient_base = {}
 	for line in data:
 		# {"startDate":new Date("Thurs Jun 12 13:54:00 EST 2014"),"endDate":new Date("Thurs Jun 12 13:58:00 EST 2014"),"taskName":"Patient 0","status":"Inf"}
 		# print line
@@ -196,9 +198,12 @@ def createTasks(request, data):
 		rooms.add(status_dict[room] if room in status_dict else room)
 
 		if 'left_align' in request.GET:
-			base_time = int(time.mktime(datetime.datetime.now().timetuple()))
-			end_val = base_time + (end_val - start_val)
-			start_val = base_time
+			if mrn not in patient_base:
+				patient_base[mrn] = start_val
+			bt = patient_base[mrn]
+
+			end_val = end_val - bt + base_time
+			start_val = start_val - bt + base_time
 			#print start_val, end_val
 
 		t = None
